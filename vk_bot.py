@@ -27,14 +27,12 @@ def create_message():
 
 
 def send_message(body):
-    # request = body.get('text')
-
     image_url, attachment = create_message()
     if body.get('from_chat'):
         vk.messages.send(
             chat_id=body.get('from_chat'),
             random_id=random.randint(pow(10, 5), pow(10, 6)),
-            message="Получите в подарок QR-код Кока-Кола® объемом 0.25 л!",
+            message="Держите купон",
             attachment=attachment
         )
 

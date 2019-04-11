@@ -15,7 +15,7 @@ longpoll = VkBotLongPoll(vk_session, 171810806)
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
 
-channel.queue_declare(queue='queue', durable=True)
+channel.queue_declare(queue='img_queue', durable=True)
 
 
 def create_message():
@@ -23,17 +23,17 @@ def create_message():
     upload = vk_api.VkUpload(vk_session)
     photo = upload.photo_messages(image_url)
     photo = 'photo{}_{}'.format(photo[0]['owner_id'], photo[0]['id'])
-    return image_url, photo
+    remove_img(image_url)
+    return photo
 
 
 def send_message(body):
-    image_url, attachment = create_message()
     if body.get('from_chat'):
         vk.messages.send(
             chat_id=body.get('from_chat'),
             random_id=random.randint(pow(10, 5), pow(10, 6)),
             message="Держите купон",
-            attachment=attachment
+            attachment=body.get('attachment')
         )
 
     elif body.get('from_user'):
@@ -41,15 +41,15 @@ def send_message(body):
             user_id=body.get('from_user'),
             random_id=random.randint(pow(10, 5), pow(10, 6)),
             message='из лички {}'.format(ms.current_process().name),
-            attachment=attachment
+            attachment=body.get('attachment')
         )
 
-    remove_img(image_url)
+
 
 
 def create_task(_kwargs):
     channel.basic_publish(exchange='',
-                          routing_key='queue',
+                          routing_key='img_queue',
                           body=_kwargs,
                           properties=pika.BasicProperties(
                               delivery_mode=2,  # make message persistent

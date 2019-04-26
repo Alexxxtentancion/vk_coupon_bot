@@ -14,7 +14,7 @@ def callback(ch, method, properties, body):
 
 
 def consume():
-    channel.queue_declare(queue='vk_queue', durable=True)
+    channel.queue_declare(queue='vk_queue',durable=True)
 
     channel.basic_qos(prefetch_count=1)
 

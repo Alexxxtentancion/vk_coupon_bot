@@ -1,25 +1,24 @@
 import multiprocessing
 import os
 import pickle
-import time
-
+import signal
 import pika
-
-from vk_bot import send_message,create_message
-
+from tasks.send_msg import msg_task
+from qr_gen import generate_png
 connection = pika.BlockingConnection(pika.ConnectionParameters(
     'localhost'))
 channel = connection.channel()
-
+script_path = os.path.dirname(os.path.abspath(__file__))
 
 def callback(ch, method, properties, body):
     body = pickle.loads(body)
-    body['attachment'] = create_message()
+    body['url'] = generate_png()
     msg_task(body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
+
 def consume():
-    channel.queue_declare(queue='img_queue', durable=True)
+    channel.queue_declare(queue='img_queue',durable=True)
 
     channel.basic_qos(prefetch_count=1)
 
@@ -32,23 +31,21 @@ def consume():
         pass
 
 
-def msg_task(body):
-    channel.basic_publish(exchange='',
-                          routing_key='vk_queue',
-                          body=pickle.dumps(body),
-                          properties=pika.BasicProperties(
-                              delivery_mode=2,  # make message persistent
-                          ))
 
+def init_worker():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 if __name__ == '__main__':
     workers = os.cpu_count()
-    pool = multiprocessing.Pool(processes=workers)
-    for i in range(0, workers):
-        pool.apply_async(consume)
+    pool = multiprocessing.Pool(workers,init_worker)
     try:
-        while True:
-            continue
+        for i in range(0, workers):
+            pool.apply_async(consume)
+        pool.close()
+        pool.join()
+
     except KeyboardInterrupt:
         pool.terminate()
         pool.join()
+
+

@@ -1,12 +1,13 @@
-import os
+import multiprocessing as ms
 import pickle
 import random
-import  multiprocessing as ms
+
 import pika
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-
-from qr_gen import remove_img, generate_png
+from qr_gen import remove_img
+from tasks.create_msg import create_task
+# from tasks.send_msg import send_
 
 token = "6f4e109c2e60f330b15de57da8de7e64a3e809ab8ce43d076e48dd92419d26a9a2a46c1928bac6045c21a"
 vk_session = vk_api.VkApi(token=token)
@@ -18,22 +19,21 @@ channel = connection.channel()
 channel.queue_declare(queue='img_queue', durable=True)
 
 
-def create_message():
-    image_url = generate_png()
-    upload = vk_api.VkUpload(vk_session)
-    photo = upload.photo_messages(image_url)
-    photo = 'photo{}_{}'.format(photo[0]['owner_id'], photo[0]['id'])
-    remove_img(image_url)
-    return photo
+
 
 
 def send_message(body):
+    upload = vk_api.VkUpload(vk_session)
+    photo = upload.photo_messages(body.get('url'))
+    print(body.get('url'))
+    photo = 'photo{}_{}'.format(photo[0]['owner_id'], photo[0]['id'])
+
     if body.get('from_chat'):
         vk.messages.send(
             chat_id=body.get('from_chat'),
             random_id=random.randint(pow(10, 5), pow(10, 6)),
             message="Держите купон",
-            attachment=body.get('attachment')
+            attachment=photo
         )
 
     elif body.get('from_user'):
@@ -41,19 +41,10 @@ def send_message(body):
             user_id=body.get('from_user'),
             random_id=random.randint(pow(10, 5), pow(10, 6)),
             message='из лички {}'.format(ms.current_process().name),
-            attachment=body.get('attachment')
+            attachment=photo
         )
+    remove_img(body.get('url'))
 
-
-
-
-def create_task(_kwargs):
-    channel.basic_publish(exchange='',
-                          routing_key='img_queue',
-                          body=_kwargs,
-                          properties=pika.BasicProperties(
-                              delivery_mode=2,  # make message persistent
-                          ))
 
 
 if __name__ == '__main__':

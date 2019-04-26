@@ -15,9 +15,9 @@ template_file_path = os.path.join(script_path, templates_dir)
 render_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(template_file_path))
 
 
-def randomString(stringLength=10):
+def random_string(string_length=10):
     letters = string.ascii_letters
-    s = ''.join(random.choice(letters) for i in range(stringLength)).encode()
+    s = ''.join(random.choice(letters) for i in range(string_length)).encode()
     hash_obj = hashlib.sha3_256(s)
     hex_dig = hash_obj.hexdigest()
     return hex_dig
@@ -43,13 +43,13 @@ def remove_img(img_name, path=None):
 
 
 def generate_png():
-    s = randomString()
+    s = random_string()
     img = qrcode.make(s)
     id = random.randint(100_000_000, 999_000_000)
     img_url = "qr_{}.jpg".format(id)
     img.save(img_url)
     out = render(img_url)
-    png_url = "png_{}.png".format(random.randint(100_000_000, 999_000_000))
+    png_url = "{}\png_{}.png".format(script_path, random.randint(100_000_000, 999_000_000))
     gen(png_url, out)
     remove_img(img_url)
     return png_url

@@ -5,9 +5,10 @@ import random
 import pika
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+
 from qr_gen import remove_img
 from tasks.create_msg import create_task
-# from tasks.send_msg import send_
+
 
 token = "6f4e109c2e60f330b15de57da8de7e64a3e809ab8ce43d076e48dd92419d26a9a2a46c1928bac6045c21a"
 vk_session = vk_api.VkApi(token=token)
@@ -19,13 +20,9 @@ channel = connection.channel()
 channel.queue_declare(queue='img_queue', durable=True)
 
 
-
-
-
 def send_message(body):
     upload = vk_api.VkUpload(vk_session)
     photo = upload.photo_messages(body.get('url'))
-    print(body.get('url'))
     photo = 'photo{}_{}'.format(photo[0]['owner_id'], photo[0]['id'])
 
     if body.get('from_chat'):
@@ -46,7 +43,6 @@ def send_message(body):
     remove_img(body.get('url'))
 
 
-
 if __name__ == '__main__':
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
@@ -58,4 +54,4 @@ if __name__ == '__main__':
                     _kwargs['from_chat'] = event.chat_id
             else:
                 _kwargs = {}
-            create_task(pickle.dumps(_kwargs))
+            create_task(channel, pickle.dumps(_kwargs))

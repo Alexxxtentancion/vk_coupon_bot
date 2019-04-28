@@ -13,7 +13,7 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 def callback(ch, method, properties, body):
     body = pickle.loads(body)
     body['url'] = generate_png()
-    msg_task(body)
+    msg_task(channel,body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 

@@ -8,7 +8,7 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 
 from qr_gen import remove_img
 from tasks.create_msg import create_task
-from mytoken import tokengit
+from mytoken import token
 vk_session = vk_api.VkApi(token=token)
 vk = vk_session.get_api()
 longpoll = VkBotLongPoll(vk_session, 171810806)

@@ -8,15 +8,12 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 
 from qr_gen import remove_img
 from tasks.create_msg import create_task
-
-
-token = "6f4e109c2e60f330b15de57da8de7e64a3e809ab8ce43d076e48dd92419d26a9a2a46c1928bac6045c21a"
+from mytoken import tokengit
 vk_session = vk_api.VkApi(token=token)
 vk = vk_session.get_api()
 longpoll = VkBotLongPoll(vk_session, 171810806)
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
-
 channel.queue_declare(queue='img_queue', durable=True)
 
 
